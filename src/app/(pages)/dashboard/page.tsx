@@ -19,7 +19,9 @@ export default function LoginPage() {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-purple-900 to-red-800">
+    <div 
+      className="min-h-screen flex items-center justify-center bg-cover bg-center"
+      style={{backgroundImage: "url('/background.jpg')"}}>
       <div className="bg-white p-8 rounded-md shadow-xl w-88">
         <h1 className="mt-5 text-2xl font-bold mb-7 text-center text-neutral-950">Login</h1>
         <div className="mb-2">
@@ -27,7 +29,7 @@ export default function LoginPage() {
           <input
             type="text"
             placeholder="type your username here"
-            className="mt-1 w-full p-2 border-2 rounded-sm outline-none placeholder-gray-150 focus:border-purple-700 focus:placeholder-transparent focus:text-neutral-900"
+            className="mt-1 w-full p-2 border-2 rounded-sm outline-none placeholder-gray-200 focus:border-purple-700 focus:placeholder-transparent focus:text-neutral-900"
             value={username}
             onChange={(e) => setUsername(e.target.value)}
           />
@@ -37,7 +39,7 @@ export default function LoginPage() {
           <input
             type="password"
             placeholder="type your password here"
-            className="mt-1 w-full p-2 border-2 rounded-sm outline-none focus:border-purple-700 placeholder-gray-150 focus:placeholder-transparent focus:text-neutral-900"
+            className="mt-1 w-full p-2 border-2 rounded-sm outline-none focus:border-purple-700 placeholder-gray-200 focus:placeholder-transparent focus:text-neutral-900"
             value={password}
             onChange={(e) => setPassword(e.target.value)}
           />
@@ -45,7 +47,7 @@ export default function LoginPage() {
         <div className="mb-2">
           <label className="text-sm font-medium text-neutral-900">role</label>
           <select
-            className="mt-1 w-full p-2 border-2 rounded-sm outline-none focus:border-purple-700 placeholder-gray-150 focus:placeholder-transparent focus:text-neutral-900"
+            className="mt-1 w-full p-2 border-2 rounded-sm outline-none focus:border-purple-700 placeholder-gray-200 focus:placeholder-transparent focus:text-neutral-900"
             value={role}
             onChange={(e) => setRole(e.target.value)}
           >
@@ -57,9 +59,15 @@ export default function LoginPage() {
         </div>
         <button
           onClick={handleLogin}
-          className="mt-12 mb-10 w-full p-2 text-white rounded-xl bg-gradient-to-r from-purple-800 to-red-600 hover:from-purple-700 hover:to-red-500"
+          className="mt-12 mb-10 w-full p-2 text-white rounded-xl bg-cover bg-center relative overflow-hidden"
+          style={{
+            backgroundImage: "url('/background.jpg')",
+            backgroundSize: "cover",
+            backgroundPosition: "center",
+          }}
         >
-          LOGIN
+          <div className="absolute inset-0 bg-black/30 hover:bg-black/20 transition-all duration-300"></div>
+          <span className='relative z-10'>LOGIN</span>
         </button>
       </div>
     </div>
