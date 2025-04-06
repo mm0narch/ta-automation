@@ -5,7 +5,7 @@ import { useRouter } from 'next/navigation';
 
 // export default function InputComponent() {
 //   const [isFocused, setIsFocused] = useState(false);
-// }
+  // }
 
 export default function LoginPage() {
   const [username, setUsername] = useState('');
@@ -22,7 +22,7 @@ export default function LoginPage() {
     <div 
       className="min-h-screen flex items-center justify-center bg-cover bg-center"
       style={{backgroundImage: "url('/background.jpg')"}}>
-      <div className="bg-white p-8 rounded-md shadow-xl w-88">
+      <div className="bg-[#f9f9f9] p-8 rounded-sm shadow-xl w-88">
         <h1 className="mt-5 text-2xl font-bold mb-7 text-center text-neutral-950">Login</h1>
         <div className="mb-2">
           <label className="text-sm font-medium text-black text-neutral-900">username</label>

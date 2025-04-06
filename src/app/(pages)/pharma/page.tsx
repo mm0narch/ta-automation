@@ -19,7 +19,7 @@ export default function DocumentPage() {
 
           <div className="flex flex-col space-y-1 items-end mt-1">
             <Image src="/vercel.svg" alt="Logo" width={76} height={38} />
-            <span className="text-[#f9f9f9] text-sm font-semibold">physician</span>
+            <span className="text-[#f9f9f9] text-sm font-semibold">pharmacist</span>
           </div>
 
           <div className="absolute left-[26%] flex space-x-6">
