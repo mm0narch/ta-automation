@@ -1,7 +1,9 @@
 'use client'
 
 import { useState } from 'react';
+import bcrypt from 'bcryptjs'
 import { useRouter } from 'next/navigation';
+import { supabase } from '../../../../lib/supabase';
 
 export default function LoginPage() {
   const [username, setUsername] = useState('');
@@ -10,9 +12,7 @@ export default function LoginPage() {
   const router = useRouter();
 
   const handleLogin = () => {
-    // Authentication logic here
-    router.push('/dashboard');
-  };
+  }
 
   const newAccount = () => {
     router.push('/newaccount');

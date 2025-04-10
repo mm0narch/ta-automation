@@ -2,6 +2,8 @@
 
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
+import { supabase } from '../../../../lib/supabase'
+import { hashPassword } from '../../../../lib/hashPassword'
 
 export default function LoginPage() {
   const [username, setUsername] = useState('');
@@ -9,9 +11,18 @@ export default function LoginPage() {
   const [role, setRole] = useState('');
   const router = useRouter();
 
-  const handleLogin = () => {
-    // Authentication logic here
-    router.push('/dashboard');
+  const handleRegister = async () => {
+    const hashedPassword = await hashPassword(password)
+
+    const { data, error } = await supabase
+      .from('users')
+      .insert([{ username, password: hashedPassword, role }])
+
+    if (error) {
+      console.error(error)
+    } else {
+      router.push('/dashboard')
+    }
   };
 
   return (
@@ -49,12 +60,12 @@ export default function LoginPage() {
           >
             <option value="">choose your role</option>
             <option value="admin">admin</option>
-            <option value="user">doctor</option>
-            <option value="user">pharmacist</option>
+            <option value="doctor">doctor</option>
+            <option value="pharmacist">pharmacist</option>
           </select>
         </div>
         <button
-          onClick={handleLogin}
+          onClick={handleRegister}
           className="mt-12 mb-10 w-full p-2 text-white rounded-xl bg-cover bg-center relative overflow-hidden"
           style={{
             backgroundImage: "url('/background.jpg')",
