@@ -11,7 +11,38 @@ export default function LoginPage() {
   const [role, setRole] = useState('');
   const router = useRouter();
 
-  const handleLogin = () => {
+  const handleLogin = async () => {
+    try {
+      if(!username || !password) {
+        console.error('Username and password are required')
+      }
+
+      const { data, error } = await supabase
+        .from('users')
+        .select()
+        .eq('username', username)
+        .single()
+
+      console.log(data)
+
+      if (error || !data) {
+        console.error('User not found or query error:', error)
+        return
+      }
+
+      const isMatch = await bcrypt.compare(password, data.password)
+
+      if (!isMatch) {
+        console.error('Incorrect password')
+        return
+      }
+      
+      console.log('Login successful:', data.username)
+      router.push('/dashboard')
+
+    } catch (err) {
+      console.error('Unexpected error during login:', err)
+    }
   }
 
   const newAccount = () => {
