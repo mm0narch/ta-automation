@@ -8,13 +8,13 @@ import { supabase } from '../../../../lib/supabase';
 export default function LoginPage() {
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
-  const [role, setRole] = useState('');
   const router = useRouter();
 
   const handleLogin = async () => {
     try {
       if(!username || !password) {
         console.error('Username and password are required')
+        return
       }
 
       const { data, error } = await supabase
@@ -40,6 +40,17 @@ export default function LoginPage() {
       console.log('Login successful:', data.username)
       router.push('/dashboard')
 
+      if (data.role == 'doctor') {
+        router.push('/doctor');
+      } else if (data.role == 'pharmacist') {
+        router.push('/pharma')
+      } else if (data.role == 'admin') {
+        router.push('/admin')
+      } else {
+        console.error('Invalid role:', data.role);
+        return
+      }
+
     } catch (err) {
       console.error('Unexpected error during login:', err)
     }
@@ -50,13 +61,23 @@ export default function LoginPage() {
   }
 
   return (
-    <div 
+    <div
       className="min-h-screen flex items-center justify-center bg-cover bg-center"
-      style={{backgroundImage: "url('/background.jpg')"}}>
-      <div className="bg-[#f9f9f9] p-8 rounded-sm shadow-xl w-88">
-        <h1 className="mt-5 text-2xl font-bold mb-7 text-center text-neutral-950">Login</h1>
+      style={{ backgroundImage: "url('/background.jpg')" }}
+    >
+      <form
+        onSubmit={(e) => {
+          e.preventDefault()
+          handleLogin()
+        }}
+        className="bg-[#f9f9f9] p-8 rounded-sm shadow-xl w-88"
+      >
+        <h1 className="mt-5 text-2xl font-bold mb-7 text-center text-neutral-950">
+          Login
+        </h1>
+
         <div className="mb-2">
-          <label className="text-sm font-medium text-black text-neutral-900">username</label>
+          <label className="text-sm font-medium text-neutral-900">Username</label>
           <input
             type="text"
             placeholder="type your username here"
@@ -65,50 +86,41 @@ export default function LoginPage() {
             onChange={(e) => setUsername(e.target.value)}
           />
         </div>
+
         <div className="mb-2">
-          <label className="text-sm font-medium text-neutral-900">password</label>
+          <label className="text-sm font-medium text-neutral-900">Password</label>
           <input
             type="password"
             placeholder="type your password here"
-            className="mt-1 w-full p-2 border-2 rounded-sm outline-none focus:border-purple-700 placeholder-gray-200 focus:placeholder-transparent focus:text-neutral-900"
+            className="mt-1 w-full p-2 border-2 rounded-sm outline-none placeholder-gray-200 focus:border-purple-700 focus:placeholder-transparent focus:text-neutral-900"
             value={password}
             onChange={(e) => setPassword(e.target.value)}
           />
         </div>
-        <div className="mb-2">
-          <label className="text-sm font-medium text-neutral-900">role</label>
-          <select
-            className="mt-1 w-full p-2 border-2 rounded-sm outline-none focus:border-purple-700 placeholder-gray-200 focus:placeholder-transparent focus:text-neutral-900"
-            value={role}
-            onChange={(e) => setRole(e.target.value)}
-          >
-            <option value="">choose your role</option>
-            <option value="admin">admin</option>
-            <option value="user">doctor</option>
-            <option value="user">pharmacist</option>
-          </select>
-        </div>
+
         <button
-          onClick={handleLogin}
-          className="mt-11 mb-9 w-full p-2 text-white rounded-xl bg-cover bg-center relative overflow-hidden"
+          type="submit"
+          className="mt-12 mb-10 w-full p-2 text-white rounded-xl bg-cover bg-center relative overflow-hidden"
           style={{
             backgroundImage: "url('/background.jpg')",
             backgroundSize: "cover",
             backgroundPosition: "center",
           }}
         >
-          <div className="absolute inset-0 bg-black/30 hover:bg-black/20 transition-all duration-300"></div>
-          <span className='relative z-10'>LOGIN</span>
+          <div className="absolute inset-0 bg-black/30 hover:bg-black/20 transition-all duration-300" />
+          <span className="relative z-10">LOGIN</span>
         </button>
-        <div className='flex flex-col items-end'>
+
+        <div className="flex flex-col items-end">
           <button
+            type="button"
             onClick={newAccount}
-            className='mb-2 text-sm hover:underline transition font-semibold text-[#ee0035]'
+            className="mb-2 text-sm hover:underline transition font-semibold text-[#ee0035]"
           >
             Create New User
           </button>
         </div>
-      </div>
+      </form>
     </div>
-  );
-} 
+  )
+}
