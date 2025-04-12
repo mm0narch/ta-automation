@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { supabase } from '../../../../lib/supabase'
 import { hashPassword } from '../../../../lib/hashPassword'
@@ -12,6 +12,10 @@ export default function LoginPage() {
   const router = useRouter();
 
   const handleRegister = async () => {
+    if (!role) {
+      console.error('Please select a role before continuing')
+      return
+    }
     const hashedPassword = await hashPassword(password)
 
     const { data, error } = await supabase
@@ -24,6 +28,20 @@ export default function LoginPage() {
       router.push('/dashboard')
     }
   };
+
+  useEffect(() => {
+    const handleKeyPress = (e: KeyboardEvent) => {
+      if (e.key === 'Enter') {
+        e.preventDefault();
+        handleRegister();
+      }
+    };
+
+    window.addEventListener('keydown', handleKeyPress);
+    return () => {
+      window.removeEventListener('keydown', handleKeyPress);
+    };
+  }, [username, password, role]);
 
   return (
     <div 
