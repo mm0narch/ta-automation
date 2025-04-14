@@ -31,7 +31,7 @@ export async function POST(req) {
     response.cookies.set('session', sessionToken, {
         httpOnly: true,
         secure: false,
-        sameSite: lax,
+        sameSite: 'lax',
         path: '/',
         maxAge: 60 * 60 * 24, // valid 4 a day
     })
