@@ -16,7 +16,7 @@ export async function POST(req) {
         console.error('Failed to remove session from DB', error)
     }
             
-    const response = NextResponse.json({ success:true })
+    const response = NextResponse.json({ success:true }, { status: 200 })
     response.cookies.delete('session')
     
     return response
