@@ -1,11 +1,27 @@
 import { NextResponse } from 'next/server'
 
 export async function GET(req) {
-  const session = req.cookies.get('session')
+  const sessionCookie = req.cookies.get('session')
 
-  if (!session) {
+  if (!sessionCookie?.value) {
     return NextResponse.json({ loggedIn: false }, { status: 401 })
   }
 
-  return NextResponse.json({ loggedIn: true, session: session.value })
+  //det sesion
+  const { data: session, error} = await supabase()
+    .from('sessions')
+    .select('*, users:user_id(*)')
+    .eq('token', sessionCookie.value)
+    .gt('expires_at', new Date().toISOString())
+    .single()
+  
+  if (error || !session) {
+    const response = NextResponse.json({ loggedIn: false }, { status: 401 })
+    response.cookies.delete('session');
+    return response;
+  }
+  
+  //confusion still
+  const { password, ...safeUserData} = session.users;
+  return NextResponse.json({ loggedIn: true, user: safeUserData});
 }

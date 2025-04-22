@@ -1,6 +1,7 @@
 'use client'
 
 import { useState } from 'react';
+import { useEffect } from 'react'
 import bcrypt from 'bcryptjs'
 import { useRouter } from 'next/navigation';
 import { supabase } from '../../../../lib/supabase';
