@@ -46,7 +46,12 @@ export async function POST(req) {
         return NextResponse.json({error: 'Server Error'},  { status: 500 })
     }
     
-    const response = NextResponse.json({ success: true })
+    const { password: hashedPassword, ...safeUserData } = user
+    
+    const response = NextResponse.json({ 
+        success: true,
+        user: safeUserData
+    })
 
     response.cookies.set('session', sessionToken, {
         httpOnly: true,

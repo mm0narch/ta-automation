@@ -39,7 +39,6 @@ export default function LoginPage() {
       }
       
       console.log('Login successful:', data.username)
-      router.push('/dashboard')
 
       if (data.role == 'doctor') {
         router.push('/doctor');
