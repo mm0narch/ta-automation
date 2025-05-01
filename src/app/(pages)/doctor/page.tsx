@@ -1,10 +1,24 @@
 'use client';
 
 import Image from 'next/image';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
+import { supabase } from '../../../../lib/supabase';
 
 export default function DocumentPage() {
   const [activeTab, setActiveTab] = useState<'info' | 'details' | 'final'>('info');
+  const [username, setUsername] = useState('')
+
+  useEffect(() => {
+    const fetchUser = async () => {
+      const res = await fetch('/api/me');
+      if (res.ok) {
+        const data = await res.json();
+        setUsername(data.user?.username || '');
+      }
+    };
+
+    fetchUser();
+  }, []);
 
   return (
     <div className="min-h-screen bg-gray-200 flex flex-col">
@@ -50,6 +64,13 @@ export default function DocumentPage() {
               finalization
             </button>
           </div>
+          
+          <div className="absolute right-6 flex space-x-6">
+            <span className="text-[#f9f9f9] text-lg font-semibold">
+              {username ? `hello, ${username}` : 'loading...'}
+            </span>
+          </div>
+          
         </div>
       </header>
 
