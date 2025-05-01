@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
-import { supabase } from "../../../lib/supabase";
+import { supabase } from '../../../../lib/supabase';
 import bcrypt from "bcryptjs";
+import { v4 as uuidv4 } from "uuid";
 
 function generateSessionToken() {
     return uuidv4();
@@ -10,7 +11,7 @@ export async function POST(req) {
     const { username, password } = await req.json()
 
     //get user and password
-    const { data: user, error } = await supabase()
+    const { data: user, error } = await supabase
         .from('users')
         .select('*')
         .eq('username', username)
@@ -33,7 +34,7 @@ export async function POST(req) {
     expiresAt.setDate(expiresAt.getDate() + 1);
 
     //store sesh in db
-    const { error: sessionError } = await supabase()
+    const { error: sessionError } = await supabase
         .from('sessions')
         .insert({
             user_id: user.id,

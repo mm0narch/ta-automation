@@ -8,7 +8,7 @@ export async function GET(req) {
   }
 
   //det sesion
-  const { data: session, error} = await supabase()
+  const { data: session, error} = await supabase
     .from('sessions')
     .select('*, users:user_id(*)')
     .eq('token', sessionCookie.value)
@@ -21,7 +21,7 @@ export async function GET(req) {
     return response;
   }
   
-  //confusion still
+  //confusion 
   const { password, ...safeUserData} = session.users;
   return NextResponse.json({ loggedIn: true, user: safeUserData});
 }

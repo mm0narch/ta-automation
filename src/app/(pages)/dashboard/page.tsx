@@ -18,36 +18,29 @@ export default function LoginPage() {
         return
       }
 
-      const { data, error } = await supabase
-        .from('users')
-        .select()
-        .eq('username', username)
-        .single()
-
-      console.log(data)
-
-      if (error || !data) {
-        console.error('User not found or query error:', error)
-        return
-      }
-
-      const isMatch = await bcrypt.compare(password, data.password)
-
-      if (!isMatch) {
-        console.error('Incorrect password')
-        return
-      }
+      const res = await fetch('/api/login', {
+        method: 'POST',
+        headers: { 'Content-type': 'application/json' },
+        body: JSON.stringify({ username, password })
+      })
       
-      console.log('Login successful:', data.username)
+      const result = await res.json();
 
-      if (data.role == 'doctor') {
+      if (!res || !result.success) {
+        console.error('Login failed', result.error)
+        return
+      }
+
+      const role = result.user.role;
+
+      if (role == 'doctor') {
         router.push('/doctor');
-      } else if (data.role == 'pharmacist') {
+      } else if (role == 'pharmacist') {
         router.push('/pharma')
-      } else if (data.role == 'admin') {
+      } else if (role == 'admin') {
         router.push('/admin')
       } else {
-        console.error('Invalid role:', data.role);
+        console.error('Invalid role:', role);
         return
       }
 
