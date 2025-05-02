@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { supabase } from "../../../lib/supabase";
+import { supabase } from "../../../../lib/supabase";
 
 export async function POST(req) {
     const sessionCookie = req.cookies.get('session')
@@ -7,7 +7,7 @@ export async function POST(req) {
     //db
     try {
     if (sessionCookie?.value) {
-        await supabase()
+        await supabase
             .from('sessions')
             .delete()
             .eq('token', sessionCookie.value)            

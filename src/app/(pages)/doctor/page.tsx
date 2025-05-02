@@ -2,12 +2,12 @@
 
 import Image from 'next/image';
 import { useEffect, useState } from 'react';
-import { supabase } from '../../../../lib/supabase';
 
 export default function DocumentPage() {
   const [activeTab, setActiveTab] = useState<'info' | 'details' | 'final'>('info');
   const [username, setUsername] = useState('')
-
+  
+  //fwtch login logic
   useEffect(() => {
     const fetchUser = async () => {
       const res = await fetch('/api/me');
@@ -19,6 +19,19 @@ export default function DocumentPage() {
 
     fetchUser();
   }, []);
+
+  //logout handler
+  const handleLogout = async () => {
+    const res = await fetch('/api/logout', {
+      method: 'POST',
+    });
+  
+    if (res.ok) {
+      window.location.href = '/dashboard';
+    } else {
+      console.error('Logout failed');
+    }
+  };
 
   return (
     <div className="min-h-screen bg-gray-200 flex flex-col">
@@ -70,7 +83,9 @@ export default function DocumentPage() {
               {username ? `hello, ${username}` : 'loading...'}
             </span>
 
-            <button className = 'p-1 rounded hover:bg-white transition duration-200 group'>
+            <button 
+              onClick = { handleLogout }
+              className = 'p-1 rounded-lg hover:bg-white transition duration-200 group'>
               <Image 
                 src="/logout_final.png" 
                 alt="Logo" 
