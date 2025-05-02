@@ -65,10 +65,27 @@ export default function DocumentPage() {
             </button>
           </div>
           
-          <div className="absolute right-6 flex space-x-6">
-            <span className="text-[#f9f9f9] text-lg font-semibold">
+          <div className="absolute right-7 flex space-x-6">
+            <span className="text-[#f9f9f9] text-lg font-semibold"> 
               {username ? `hello, ${username}` : 'loading...'}
             </span>
+
+            <button className = 'p-1 rounded hover:bg-white transition duration-200 group'>
+              <Image 
+                src="/logout_final.png" 
+                alt="Logo" 
+                width={24} 
+                height={24} 
+                className = 'group-hover:hidden'
+              />
+              <Image
+                src="/logout_colored.png"
+                alt="Logo Hover"
+                width={24}
+                height={24}
+                className="hidden group-hover:block"
+              />
+            </button>
           </div>
           
         </div>
