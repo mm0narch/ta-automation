@@ -17,7 +17,8 @@ export default function LoginPage() {
         console.error('Username and password are required')
         return
       }
-
+      
+      //fetch login logic
       const res = await fetch('/api/login', {
         method: 'POST',
         headers: { 'Content-type': 'application/json' },

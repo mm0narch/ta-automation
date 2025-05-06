@@ -7,7 +7,7 @@ export default function DocumentPage() {
   const [activeTab, setActiveTab] = useState<'info' | 'details' | 'final'>('info');
   const [username, setUsername] = useState('')
   
-  //fwtch login logic
+  //verify session
   useEffect(() => {
     const fetchUser = async () => {
       const res = await fetch('/api/me');
