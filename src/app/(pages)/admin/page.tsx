@@ -83,23 +83,25 @@ export default function DocumentPage() {
       <main className="p-4 bg-[#f9f9f9] my-1 mx-1 rounded-sm flex-1">
         {activeTab === 'info' && (
           <div>
-            <h2 className="text-xl font-bold mb-4">Registered Patients</h2>
+            <h2 className="text-xl font-bold mb-4 text-zinc-950">Registered Patients</h2>
             <table className="w-full text-left border-collapse">
               <thead>
-                <tr className="bg-gray-100">
-                  <th className="p-2 border">Queue</th>
-                  <th className="p-2 border">Full Name</th>
-                  <th className="p-2 border">Birthdate</th>
-                  <th className="p-2 border">Sex</th>
-                  <th className="p-2 border">Phone</th>
+                <tr 
+                  className="bg-zinc-950"
+                  style={{ backgroundImage: "url('/header-doc.jpg')" }}>
+                  <th className="p-2 border text-gray-500">Queue</th>
+                  <th className="p-2 border text-gray-500">Full Name</th>
+                  <th className="p-2 border text-gray-500">Birthdate</th>
+                  <th className="p-2 border text-gray-500">Sex</th>
+                  <th className="p-2 border text-gray-500">Phone</th>
                 </tr>
               </thead>
               <tbody>
                 {patients.length === 0 ? (
-                  <tr><td colSpan={5} className="text-center py-4">No patients registered</td></tr>
+                  <tr><td colSpan={5} className="text-center text-neutral-900 py-4">No patients registered</td></tr>
                 ) : (
                   patients.map((p) => (
-                    <tr key={p.id} className="hover:bg-gray-50">
+                    <tr key={p.id} className="hover:bg-gray-50 text-gray-400">
                       <td className="p-2 border">{p.queue_number}</td>
                       <td className="p-2 border">{p.full_name}</td>
                       <td className="p-2 border">{p.birthdate}</td>
