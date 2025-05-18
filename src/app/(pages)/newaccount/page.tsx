@@ -29,8 +29,7 @@ export default function LoginPage() {
     if (res.ok) {
      router.push('/dashboard') 
     } else {
-      const error = await res.json()
-      console.error('Registration failed', error)
+      console.error('Registration failed', result.error)
     }
   };
 

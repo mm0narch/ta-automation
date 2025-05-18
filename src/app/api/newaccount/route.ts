@@ -1,28 +1,35 @@
-import { NextResponse } from 'next/server';
+import { NextRequest, NextResponse } from 'next/server';
 import { supabase } from '../../../../lib/supabase';
 import { hashPassword } from '../../../../lib/hashPassword';
 
-export async function POST(req: Request) {
-  try {
-    const { username, password, role } = await req.json();
+export async function POST(req: NextRequest) {
+  const { username, password, role } = await req.json();
 
-    if (!username || !password || !role) {
-      return NextResponse.json({ error: 'Missing fields' }, { status: 400 });
-    }
+  const { data: existingUsers, error: checkError } = await supabase
+    .from('users')
+    .select('id')
+    .eq('username', username)
+    .single();
 
-    const hashedPassword = await hashPassword(password);
-
-    const { data, error } = await supabase
-      .from('users')
-      .insert([{ username, password: hashedPassword, role }]);
-
-    if (error) {
-      return NextResponse.json({ error: error.message }, { status: 500 });
-    }
-
-    return NextResponse.json({ message: 'User created', data }, { status: 201 });
-  } catch (error: any) {
-    console.error('Error creating user:', error);
-    return NextResponse.json({ error: 'Internal Server Error' }, { status: 500 });
+  if (checkError && checkError.code !== 'PGRST116') {
+    return NextResponse.json({ error: 'Database error while checking username' }, { status: 500 });
   }
+
+  if (existingUsers) {
+    return NextResponse.json({ error: 'Username already taken' }, { status: 400 });
+  }
+
+  const hashedPassword = await hashPassword(password);
+
+  const { data: newUser, error: insertError } = await supabase
+    .from('users')
+    .insert([{ username, password: hashedPassword, role }])
+
+  if (insertError) {
+    return NextResponse.json({ error: 'Failed to create user' }, { status: 500 });
+  }
+
+  return NextResponse.json({
+    message: 'User created successfully',
+  }, { status: 201 });
 }
