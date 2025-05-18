@@ -1,31 +1,54 @@
-import { NextRequest, NextResponse } from 'next/server';
-import { createClient } from '@supabase/supabase-js';
+// app/api/patient/register/route.ts
+import { NextResponse } from 'next/server';
+import bcrypt from 'bcryptjs';
+import { supabase } from '../../../../lib/supabase'; // adjust path if needed
 
-const supabase = createClient(
-  process.env.NEXT_PUBLIC_SUPABASE_URL!,
-  process.env.SUPABASE_SERVICE_ROLE_KEY!
-);
-
-export async function POST(req: NextRequest) {
+export async function POST(req: Request) {
   try {
-    const body = await req.json();
+    const {
+      full_name,
+      birthdate,
+      phone_number,
+      address,
+      patient_type,
+      email,
+      password,
+    } = await req.json();
 
-    const { full_name, birthdate, phone_number, address, sex } = body;
+    if (
+      !full_name ||
+      !birthdate ||
+      !phone_number ||
+      !address ||
+      !patient_type ||
+      !email ||
+      !password
+    ) {
+      return NextResponse.json({ error: 'All fields are required' }, { status: 400 });
+    }
 
-    const { data, error } = await supabase
+    const hashedPassword = await bcrypt.hash(password, 10);
+
+    const { error } = await supabase
       .from('patients')
       .insert([
-        { full_name, birthdate, phone_number, address, sex },
+        {
+          full_name,
+          birthdate,
+          phone_number,
+          address,
+          patient_type,
+          email,
+          password: hashedPassword,
+        },
       ]);
 
     if (error) {
-      console.error('Supabase insert error:', error);
-      return NextResponse.json({ message: 'Failed to register' }, { status: 500 });
+      return NextResponse.json({ error: error.message }, { status: 500 });
     }
 
-    return NextResponse.json({ message: 'Registration successful', data }, { status: 200 });
-  } catch (error) {
-    console.error('Error processing registration:', error);
-    return NextResponse.json({ message: 'Failed to register' }, { status: 500 });
+    return NextResponse.json({ message: 'Patient registered successfully' }, { status: 201 });
+  } catch (err) {
+    return NextResponse.json({ error: 'Server error' }, { status: 500 });
   }
 }

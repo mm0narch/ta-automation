@@ -16,16 +16,21 @@ export default function LoginPage() {
       console.error('Please select a role before continuing')
       return
     }
-    const hashedPassword = await hashPassword(password)
 
-    const { data, error } = await supabase
-      .from('users')
-      .insert([{ username, password: hashedPassword, role }])
+    //fetch newaccount api
+    const res = await fetch('/api/newaccount', {
+      method: 'POST',
+      headers: {'Content-type': 'application/json'},
+      body: JSON.stringify({ username, password, role })
+    }) 
+    
+    const result = await res.json();
 
-    if (error) {
-      console.error(error)
+    if (res.ok) {
+     router.push('/dashboard') 
     } else {
-      router.push('/dashboard')
+      const error = await res.json()
+      console.error('Registration failed', error)
     }
   };
 
