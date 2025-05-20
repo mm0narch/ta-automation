@@ -18,7 +18,7 @@ export async function POST(req) {
         .single();
 
     if (error || !user) {
-        return NextResponse.json({ error: 'Invalid credentials' }, { status: 401 })
+        return NextResponse.json({ error: 'Invalid credentials' }, { status: 401 }) 
     }
 
     //compare password

@@ -28,7 +28,7 @@ export default function PatientRegisterPage() {
     });
 
     if (res.ok) {
-      router.push('/dashboard'); // or to a success page
+      router.push('/patientlogin'); // or to a success page
     } else {
       const error = await res.json();
       console.error('Registration failed', error);
@@ -70,7 +70,7 @@ export default function PatientRegisterPage() {
           required
         />
 
-        <textarea
+        <input
           name="address"
           placeholder="Address"
           value={formData.address}
