@@ -1,58 +1,42 @@
 'use client'
 
 import { useState } from 'react';
-import { useEffect } from 'react'
-import bcrypt from 'bcryptjs'
 import { useRouter } from 'next/navigation';
-import { supabase } from '../../../../lib/supabase';
 
-export default function LoginPage() {
-  const [username, setUsername] = useState('');
+export default function PatientLoginPage() {
+  const [phoneNumber, setPhoneNumber] = useState('');
   const [password, setPassword] = useState('');
   const router = useRouter();
 
   const handleLogin = async () => {
     try {
-      if(!username || !password) {
-        console.error('Username and password are required')
-        return
+      if (!phoneNumber || !password) {
+        console.error('Phone number and password are required');
+        return;
       }
-      
-      //fetch login logic
-      const res = await fetch('/api/login', {
+
+      const res = await fetch('/api/patientlogin', {
         method: 'POST',
-        headers: { 'Content-type': 'application/json' },
-        body: JSON.stringify({ username, password })
-      })
-      
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ phone_number: phoneNumber, password })
+      });
+
       const result = await res.json();
 
-      if (!res || !result.success) {
-        console.error('Login failed', result.error)
-        return
+      if (!res.ok || !result.success) {
+        console.error('Login failed', result.error);
+        return;
       }
 
-      const role = result.user.role;
-
-      if (role == 'doctor') {
-        router.push('/doctor');
-      } else if (role == 'pharmacist') {
-        router.push('/pharma')
-      } else if (role == 'admin') {
-        router.push('/admin')
-      } else {
-        console.error('Invalid role:', role);
-        return
-      }
-
+      router.push('/patientdashboard');
     } catch (err) {
-      console.error('Unexpected error during login:', err)
+      console.error('Unexpected error during login:', err);
     }
-  }
+  };
 
-  const newAccount = () => {
-    router.push('/newaccount');
-  }
+  const goToRegister = () => {
+    router.push('/patient/newaccount');
+  };
 
   return (
     <div
@@ -61,23 +45,23 @@ export default function LoginPage() {
     >
       <form
         onSubmit={(e) => {
-          e.preventDefault()
-          handleLogin()
+          e.preventDefault();
+          handleLogin();
         }}
         className="bg-[#f9f9f9] p-8 rounded-sm shadow-xl w-88"
       >
         <h1 className="mt-5 text-2xl font-bold mb-7 text-center text-neutral-950">
-          Patient Mock Login
+          Patient Login
         </h1>
 
         <div className="mb-2">
-          <label className="text-sm font-medium text-neutral-900">Phone number</label>
+          <label className="text-sm font-medium text-neutral-900">Phone Number</label>
           <input
             type="text"
-            placeholder="type your phone number here"
+            placeholder="Enter your phone number"
             className="mt-1 w-full p-2 border-2 rounded-sm outline-none placeholder-gray-200 focus:border-purple-700 focus:placeholder-transparent focus:text-neutral-900"
-            value={username}
-            onChange={(e) => setUsername(e.target.value)}
+            value={phoneNumber}
+            onChange={(e) => setPhoneNumber(e.target.value)}
           />
         </div>
 
@@ -85,7 +69,7 @@ export default function LoginPage() {
           <label className="text-sm font-medium text-neutral-900">Password</label>
           <input
             type="password"
-            placeholder="type your password here"
+            placeholder="Enter your password"
             className="mt-1 w-full p-2 border-2 rounded-sm outline-none placeholder-gray-200 focus:border-purple-700 focus:placeholder-transparent focus:text-neutral-900"
             value={password}
             onChange={(e) => setPassword(e.target.value)}
@@ -108,13 +92,13 @@ export default function LoginPage() {
         <div className="flex flex-col items-end">
           <button
             type="button"
-            onClick={newAccount}
+            onClick={goToRegister}
             className="mb-2 text-sm hover:underline transition font-semibold text-[#ee0035]"
           >
-            Create New User
+            Create New Patient
           </button>
         </div>
       </form>
     </div>
-  )
+  );
 }
