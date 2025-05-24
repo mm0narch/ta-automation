@@ -28,7 +28,7 @@ export default function PatientLoginPage() {
         return;
       }
 
-      router.push('/patientdashboard');
+      router.push('/patient');
     } catch (err) {
       console.error('Unexpected error during login:', err);
     }
