@@ -10,7 +10,7 @@ function generateSessionToken() {
 export async function POST(req: Request) {
   const { phone_number, password } = await req.json();
 
-  // get patient by phone number
+  //get user
   const { data: patient, error } = await supabase
     .from('patients')
     .select('*')
@@ -21,18 +21,18 @@ export async function POST(req: Request) {
     return NextResponse.json({ error: 'Invalid credentials' }, { status: 401 });
   }
 
-  // check password
+  //check password
   const validPassword = await bcrypt.compare(password, patient.password);
   if (!validPassword) {
     return NextResponse.json({ error: 'Invalid credentials' }, { status: 401 });
   }
 
-  // generate session token
+  //sesh token
   const sessionToken = generateSessionToken();
   const expiresAt = new Date();
-  expiresAt.setDate(expiresAt.getDate() + 1); // 1 day session
+  expiresAt.setDate(expiresAt.getDate() + 1);
 
-  // insert into patientsession table
+  //store sesh in db
   const { error: sessionError } = await supabase
     .from('patientsession')
     .insert({
@@ -46,8 +46,8 @@ export async function POST(req: Request) {
     return NextResponse.json({ error: 'Server error' }, { status: 500 });
   }
 
-  // send response and set cookie
-  const { password: _, ...safePatientData } = patient;
+  //send response and set cookie
+  const { password: hashedPassword, ...safePatientData } = patient;
 
   const response = NextResponse.json({
     success: true,

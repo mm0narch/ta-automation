@@ -7,7 +7,6 @@ type PatientUser = {
   id: string
   full_name: string
   phone_number: string
-  // add other fields if needed
 }
 
 export default function PatientDashboard() {
@@ -19,7 +18,7 @@ export default function PatientDashboard() {
     const checkSession = async () => {
       try {
         const res = await fetch('/api/patientme', {
-          credentials: 'include', // 👈 IMPORTANT to send cookies like patient_session
+          credentials: 'include',
         })
 
         if (!res.ok) {
@@ -40,14 +39,35 @@ export default function PatientDashboard() {
     checkSession()
   }, [router])
 
-  if (loading) return <div>Loading patient dashboard...</div>
-
-  if (!user) return null // already redirected if unauthorized
+  if (loading) return <div className="p-6">Loading patient dashboard...</div>
+  if (!user) return null
 
   return (
-    <div className="p-6">
-      <h1 className="text-2xl font-bold">Welcome, {user.full_name}</h1>
-      {/* Add more dashboard UI here */}
+    <div className="min-h-screen bg-gray-100 p-6 flex flex-col items-center">
+      <h1 className="text-3xl font-bold mb-6">Welcome, {user.full_name}</h1>
+
+      <div className="grid gap-4 w-full max-w-sm">
+        <button
+          onClick={() => router.push('/patient/bpjs/register')}
+          className="bg-blue-600 hover:bg-blue-700 text-white font-semibold py-3 px-6 rounded-lg shadow"
+        >
+          Register BPJS Membership
+        </button>
+
+        <button
+          onClick={() => router.push('/patient/bpjs')}
+          className="bg-green-600 hover:bg-green-700 text-white font-semibold py-3 px-6 rounded-lg shadow"
+        >
+          BPJS
+        </button>
+
+        <button
+          onClick={() => router.push('/patient/non-bpjs')}
+          className="bg-purple-600 hover:bg-purple-700 text-white font-semibold py-3 px-6 rounded-lg shadow"
+        >
+          Non-BPJS
+        </button>
+      </div>
     </div>
   )
 }
