@@ -1,81 +1,71 @@
 'use client'
 
-import { useSearchParams, useRouter } from 'next/navigation'
+import { useRouter, useSearchParams } from 'next/navigation'
 import { useEffect, useState } from 'react'
 
 export default function BPJSConfirmationPage() {
-  const searchParams = useSearchParams()
   const router = useRouter()
+  const searchParams = useSearchParams()
 
   const date = searchParams.get('date')
   const time = searchParams.get('time')
+  const patientId = searchParams.get('patientId') // or get from session/cookie
 
-  const [isPast, setIsPast] = useState(false)
-  const [submitting, setSubmitting] = useState(false)
+  const [loading, setLoading] = useState(false)
+  const [error, setError] = useState<string | null>(null)
+  const [success, setSuccess] = useState(false)
 
   useEffect(() => {
-    if (!date || !time) return
-
-    const selectedDateTime = new Date(`${date}T${time}`)
-    const now = new Date()
-    setIsPast(selectedDateTime < now)
-  }, [date, time])
+    if (!date || !time) {
+      router.replace('/patient/bpjs') // redirect back if data missing
+    }
+  }, [date, time, router])
 
   const handleConfirm = async () => {
-    if (!date || !time || isPast) return
-
-    setSubmitting(true)
+    setLoading(true)
+    setError(null)
 
     try {
-      const res = await fetch('/api/appointments/bpjs', {
+      const res = await fetch('/api/appointments/bpjs/book', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        credentials: 'include',
         body: JSON.stringify({ date, time }),
       })
 
+      const data = await res.json()
+
       if (!res.ok) {
-        const err = await res.json()
-        alert('Failed to book appointment: ' + err.message)
+        const errorData = await res.json()
+        console.error('Error:', data.error)
         return
       }
 
-      router.push('/patient/bpjs/success')
-    } catch (err) {
-      alert('Something went wrong.')
-      console.error(err)
+      setSuccess(true)
+      setTimeout(() => router.push('/patient/dashboard'), 1500)
+    } catch (err: any) {
+      setError(err.message)
     } finally {
-      setSubmitting(false)
+      setLoading(false)
     }
   }
 
-  if (!date || !time) {
-    return (
-      <div className="p-6">
-        <h1 className="text-xl font-semibold text-red-600">Invalid appointment data.</h1>
-      </div>
-    )
-  }
-
   return (
-    <div className="p-6 max-w-md mx-auto">
-      <h1 className="text-2xl font-bold mb-4">Confirm BPJS Appointment</h1>
-      <p className="mb-2">Date: <strong>{date}</strong></p>
-      <p className="mb-4">Time: <strong>{time}</strong></p>
+    <div className="max-w-md mx-auto p-6 mt-10 bg-white rounded-2xl shadow-lg">
+      <h1 className="text-xl font-semibold mb-4">Confirm Your Appointment</h1>
+      <p className="mb-2">📅 Date: <strong>{date}</strong></p>
+      <p className="mb-4">⏰ Time: <strong>{time}</strong></p>
 
-      {isPast && (
-        <p className="text-red-600 mb-4">
-          You cannot schedule an appointment in the past. Please go back and choose another time.
-        </p>
-      )}
+      {error && <p className="text-red-500 text-sm mb-4">{error}</p>}
+      {success && <p className="text-green-600 mb-4">✅ Appointment confirmed!</p>}
 
       <button
         onClick={handleConfirm}
-        className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700 disabled:bg-gray-400"
-        disabled={isPast || submitting}
+        disabled={loading || success}
+        className="w-full py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-xl transition disabled:opacity-50"
       >
-        {submitting ? 'Booking...' : 'Confirm Appointment'}
+        {loading ? 'Confirming...' : 'Confirm Appointment'}
       </button>
     </div>
   )
 }
+  

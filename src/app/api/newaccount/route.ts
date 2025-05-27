@@ -30,6 +30,6 @@ export async function POST(req: NextRequest) {
   }
 
   return NextResponse.json({
-    message: 'User created successfully',
+    message: 'User created successfully', 
   }, { status: 201 });
 }

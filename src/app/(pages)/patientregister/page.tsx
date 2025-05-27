@@ -28,7 +28,7 @@ export default function PatientRegisterPage() {
     });
 
     if (res.ok) {
-      router.push('/patientlogin'); // or to a success page
+      router.push('/patientlogin'); 
     } else {
       const error = await res.json();
       console.error('Registration failed', error);
