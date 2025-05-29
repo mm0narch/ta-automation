@@ -9,7 +9,6 @@ export default function BPJSConfirmationPage() {
 
   const date = searchParams.get('date')
   const time = searchParams.get('time')
-  const patientId = searchParams.get('patientId') // or get from session/cookie
 
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
@@ -32,13 +31,13 @@ export default function BPJSConfirmationPage() {
         body: JSON.stringify({ date, time }),
       })
 
-      const data = await res.json()
-
       if (!res.ok) {
         const errorData = await res.json()
-        console.error('Error:', data.error)
+        console.error('Error:', errorData.error)
         return
       }
+
+      const data = await res.json()
 
       setSuccess(true)
       setTimeout(() => router.push('/patient/dashboard'), 1500)

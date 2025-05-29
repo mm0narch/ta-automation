@@ -6,44 +6,59 @@ import dayjs from 'dayjs'
 export async function POST(req: Request) {
   const body = await req.json()
   const { date, time } = body
-  
-  const cookieStore = await cookies()
-  const session = cookieStore.get('patient_session')
 
-  if (!session) {
-    return NextResponse.json({ error: 'No patient session'}, { status: 401 })
+  //get session info
+  const cookieStore = await cookies()
+  const sessionToken = cookieStore.get('patient_session')?.value
+
+  if (!sessionToken) {
+    return NextResponse.json({ error: 'No patient session' }, { status: 401 })
   }
 
-  const { patientId } = JSON.parse(session.value)
+  //get user_id from patientsession table
+  const { data: sessionData, error: sessionError } = await supabase
+    .from('patientsession')
+    .select('user_id')
+    .eq('token', sessionToken)
+    .single()
+
+  if (sessionError || !sessionData) {
+    return NextResponse.json({ error: 'Invalid session token' }, { status: 401 })
+  }
+
+  const patientId = sessionData.user_id
 
   if (!date || !time || !patientId) {
     return NextResponse.json({ error: 'Missing data' }, { status: 400 })
   }
 
-  const weekday = dayjs(date).format('dddd') // e.g., "Monday"
+  const weekday = dayjs(date).format('dddd')
 
-  // Get all doctors available on that weekday
+  //check available doctors
   const { data: availableDoctors, error: availabilityError } = await supabase
     .from('doctoravailability')
-    .select('doctor_id, start_time, end_time')
+    .select('doctor_id, start_time, end_time, weekday')
     .eq('weekday', weekday)
 
   if (availabilityError) {
     return NextResponse.json({ error: availabilityError.message }, { status: 500 })
   }
 
-  const targetTime = dayjs(time, 'HH:mm')
+  const paddedTime = time.length === 5 ? `${time}:00` : time
+  const targetTime = dayjs(`1970-01-01T${paddedTime}`)
 
+  //time
   for (const doctor of availableDoctors) {
-    const start = dayjs(doctor.start_time, 'HH:mm')
-    const end = dayjs(doctor.end_time, 'HH:mm')
+    const startTimeStr = doctor.start_time
+    const endTimeStr = doctor.end_time
+    
+    const start = dayjs(`1970-01-01T${startTimeStr}`)
+    const end = dayjs(`1970-01-01T${endTimeStr}`)
 
-    // Check if time is within range and not too close to end
-    if (targetTime.isBefore(start) || !targetTime.isBefore(end.subtract(1, 'hour'))) {
+    if (targetTime.isBefore(start) || !targetTime.isBefore(end.subtract(59, 'minute'))) {
       continue
     }
-
-    // Check if this doctor is already booked at that date and time
+    
     const { data: existingBookings, error: bookingCheckError } = await supabase
       .from('doctorbooking')
       .select('id')
@@ -55,8 +70,8 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: bookingCheckError.message }, { status: 500 })
     }
 
+    //store booking info in db
     if (existingBookings.length === 0) {
-      // This doctor is available — insert booking
       const { error: insertError } = await supabase
         .from('doctorbooking')
         .insert({
@@ -69,8 +84,8 @@ export async function POST(req: Request) {
       if (insertError) {
         return NextResponse.json({ error: insertError.message }, { status: 500 })
       }
-
       return NextResponse.json({ success: true })
+    } else {
     }
   }
 
