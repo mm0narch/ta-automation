@@ -40,7 +40,7 @@ export default function BPJSConfirmationPage() {
       const data = await res.json()
 
       setSuccess(true)
-      setTimeout(() => router.push('/patient/dashboard'), 1500)
+      setTimeout(() => router.push('/patient/bpjs/success'), 1500)
     } catch (err: any) {
       setError(err.message)
     } finally {

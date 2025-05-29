@@ -47,18 +47,15 @@ export async function POST(req: Request) {
   const paddedTime = time.length === 5 ? `${time}:00` : time
   const targetTime = dayjs(`1970-01-01T${paddedTime}`)
 
-  //time
   for (const doctor of availableDoctors) {
-    const startTimeStr = doctor.start_time
-    const endTimeStr = doctor.end_time
-    
-    const start = dayjs(`1970-01-01T${startTimeStr}`)
-    const end = dayjs(`1970-01-01T${endTimeStr}`)
+    const start = dayjs(`1970-01-01T${doctor.start_time}`)
+    const end = dayjs(`1970-01-01T${doctor.end_time}`)
 
     if (targetTime.isBefore(start) || !targetTime.isBefore(end.subtract(59, 'minute'))) {
       continue
     }
-    
+
+    //check if doctor is already booked at this exact time
     const { data: existingBookings, error: bookingCheckError } = await supabase
       .from('doctorbooking')
       .select('id')
@@ -70,8 +67,21 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: bookingCheckError.message }, { status: 500 })
     }
 
-    //store booking info in db
+    //get current queue count for that doctor on that day
     if (existingBookings.length === 0) {
+      const { count: currentQueueCount, error: countError } = await supabase
+        .from('doctorbooking')
+        .select('id', { count: 'exact', head: true })
+        .eq('doctor_id', doctor.doctor_id)
+        .eq('book_date', date)
+
+      if (countError) {
+        return NextResponse.json({ error: countError.message }, { status: 500 })
+      }
+
+      const queueNumber = (currentQueueCount || 0) + 1
+
+      //insert booking knfo
       const { error: insertError } = await supabase
         .from('doctorbooking')
         .insert({
@@ -79,13 +89,14 @@ export async function POST(req: Request) {
           patient_id: patientId,
           book_date: date,
           book_time: time,
+          queue: queueNumber,
         })
 
       if (insertError) {
         return NextResponse.json({ error: insertError.message }, { status: 500 })
       }
-      return NextResponse.json({ success: true })
-    } else {
+
+      return NextResponse.json({ success: true, queue: queueNumber })
     }
   }
 
