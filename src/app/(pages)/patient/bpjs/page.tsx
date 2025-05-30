@@ -2,6 +2,8 @@
 
 import { useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
+import DatePicker from 'react-datepicker'
+import 'react-datepicker/dist/react-datepicker.css'
 
 type AvailableDay = 'Monday' | 'Tuesday' | 'Wednesday' | 'Thursday' | 'Friday' | 'Saturday' | 'Sunday'
 
@@ -19,27 +21,27 @@ export default function BPJSAppointmentPage() {
 
   // Fetch available weekdays on load
   useEffect(() => {
-    fetch('/api/appointments/bpjs/availableweekdays')
+    fetch('/api/appointments/availableweekdays')
       .then(res => res.json())
       .then(data => setAvailableWeekdays(data))
   }, [])
 
-  // Fetch timeslots when a date is selected
+  // Fetch time slots when a date is selected
   useEffect(() => {
     if (!selectedDate) return
     const dateStr = selectedDate.toISOString().split('T')[0]
-    fetch(`/api/appointments/bpjs/timeslots?date=${dateStr}`)
+    fetch(`/api/appointments/timeslots?date=${dateStr}`)
       .then(res => res.json())
       .then(data => setTimeSlots(data))
   }, [selectedDate])
 
-  // Disable unavailable weekdays in calendar
+  // Disable dates not in availableWeekdays
   const isDateAvailable = (date: Date) => {
     const weekday = date.toLocaleDateString('en-US', { weekday: 'long' }) as AvailableDay
     return availableWeekdays.includes(weekday)
   }
 
-  // Handle next step
+  // Handle confirmation step
   const handleContinue = () => {
     if (selectedDate && selectedTime) {
       const query = new URLSearchParams({
@@ -54,24 +56,24 @@ export default function BPJSAppointmentPage() {
     <div className="p-6 max-w-xl mx-auto space-y-6">
       <h1 className="text-2xl font-semibold text-center">BPJS Appointment</h1>
 
-      {/* Calendar (basic date input for now) */}
+      {/* Calendar using react-datepicker */}
       <div>
         <label className="block mb-2 font-medium">Select a Date</label>
-        <input
-          type="date"
-          className="border p-2 rounded"
-          onChange={(e) => {
-            const date = new Date(e.target.value)
-            if (isDateAvailable(date)) {
-              setSelectedDate(date) 
-              setSelectedTime(null) // Reset time when changing date
+        <DatePicker
+          selected={selectedDate}
+          onChange={(date) => {
+            if (date && isDateAvailable(date)) {
+              setSelectedDate(date)
+              setSelectedTime(null) // Reset time when date changes
             } else {
               alert('No doctor available on this day.')
-              e.target.value = ''
               setSelectedDate(null)
               setTimeSlots([])
             }
           }}
+          filterDate={isDateAvailable}
+          placeholderText="Select a date"
+          className="border p-2 rounded w-full"
         />
       </div>
 

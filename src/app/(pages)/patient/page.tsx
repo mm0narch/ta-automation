@@ -62,7 +62,7 @@ export default function PatientDashboard() {
         </button>
 
         <button
-          onClick={() => router.push('/patient/non-bpjs')}
+          onClick={() => router.push('/patient/nonbpjs')}
           className="bg-purple-600 hover:bg-purple-700 text-white font-semibold py-3 px-6 rounded-lg shadow"
         >
           Non-BPJS
