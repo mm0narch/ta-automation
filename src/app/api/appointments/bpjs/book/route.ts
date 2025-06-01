@@ -32,13 +32,10 @@ export async function POST(req: Request) {
     return NextResponse.json({ error: 'Missing data' }, { status: 400 })
   }
 
-  const weekday = dayjs(date).format('dddd')
-
   //check available doctors
   const { data: availableDoctors, error: availabilityError } = await supabase
     .from('doctoravailability')
     .select('doctor_id, start_time, end_time, weekday')
-    .eq('weekday', weekday)
 
   if (availabilityError) {
     return NextResponse.json({ error: availabilityError.message }, { status: 500 })

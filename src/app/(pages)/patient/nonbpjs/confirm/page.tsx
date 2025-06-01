@@ -8,22 +8,41 @@ export default function NonBPJSConfirmationPage() {
   const searchParams = useSearchParams()
 
   const doctor_id = searchParams.get('doctor_id')
-  const date = searchParams.get('date')
-  const time = searchParams.get('time')
+  const book_date = searchParams.get('date')
+  const book_time = searchParams.get('time')
 
-  // Replace this with real patient ID from session/context
-  const patient_id = 'dummy-patient-id'
+  const patient_id = 'dummy-patient-id' // Replace with real patient ID
 
+  const [doctorName, setDoctorName] = useState<string | null>(null)
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [success, setSuccess] = useState(false)
 
+  // Redirect if any info is missing
   useEffect(() => {
-    // Redirect back if missing required params
-    if (!doctor_id || !date || !time) {
+    if (!doctor_id || !book_date || !book_time) {
       router.replace('/patient/nonbpjs')
     }
-  }, [doctor_id, date, time, router])
+  }, [doctor_id, book_date, book_time, router])
+
+  // Fetch doctor name
+  useEffect(() => {
+    const fetchDoctorName = async () => {
+      try {
+        const res = await fetch(`/api/appointments/nonbpjs/doctorid/${doctor_id}`)
+        const data = await res.json()
+        if (res.ok) {
+          setDoctorName(data.name)
+        } else {
+          setDoctorName('(Unknown Doctor)')
+        }
+      } catch {
+        setDoctorName('(Error fetching name)')
+      }
+    }
+
+    if (doctor_id) fetchDoctorName()
+  }, [doctor_id])
 
   const handleConfirm = async () => {
     setLoading(true)
@@ -33,7 +52,7 @@ export default function NonBPJSConfirmationPage() {
       const res = await fetch('/api/appointments/nonbpjs/book', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ doctor_id, patient_id, date, time }),
+        body: JSON.stringify({ doctor_id, patient_id, book_date, book_time }),
       })
 
       if (!res.ok) {
@@ -57,13 +76,13 @@ export default function NonBPJSConfirmationPage() {
       <h1 className="text-xl font-semibold mb-4">Confirm Your Appointment</h1>
 
       <p className="mb-2">
-        👨‍⚕️ Doctor ID: <strong>{doctor_id}</strong>
+        👨‍⚕️ Doctor: <strong>{doctorName || 'Loading...'}</strong>
       </p>
       <p className="mb-2">
-        📅 Date: <strong>{date}</strong>
+        📅 Date: <strong>{book_date}</strong>
       </p>
       <p className="mb-4">
-        ⏰ Time: <strong>{time}</strong>
+        ⏰ Time: <strong>{book_time}</strong>
       </p>
 
       {error && <p className="text-red-500 text-sm mb-4">{error}</p>}

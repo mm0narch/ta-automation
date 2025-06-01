@@ -21,7 +21,7 @@ export default function BPJSAppointmentPage() {
 
   // Fetch available weekdays on load
   useEffect(() => {
-    fetch('/api/appointments/availableweekdays')
+    fetch('/api/appointments/bpjs/availableweekdays')
       .then(res => res.json())
       .then(data => setAvailableWeekdays(data))
   }, [])
@@ -30,7 +30,7 @@ export default function BPJSAppointmentPage() {
   useEffect(() => {
     if (!selectedDate) return
     const dateStr = selectedDate.toISOString().split('T')[0]
-    fetch(`/api/appointments/timeslots?date=${dateStr}`)
+    fetch(`/api/appointments/bpjs/timeslots?date=${dateStr}`)
       .then(res => res.json())
       .then(data => setTimeSlots(data))
   }, [selectedDate])

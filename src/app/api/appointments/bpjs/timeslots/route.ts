@@ -1,22 +1,34 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { supabase } from '../../../../../lib/supabase'
+import { supabase } from '../../../../../../lib/supabase'
 
 export async function GET(req: NextRequest) {
   const dateParam = req.nextUrl.searchParams.get('date')
   if (!dateParam) return NextResponse.json({ error: 'Missing date' }, { status: 400 })
 
   const inputDate = new Date(dateParam)
-  const weekday = inputDate.toLocaleDateString('en-US', { weekday: 'long' })
 
-  // 1. Get all doctors available on that weekday
-  const { data: availabilities, error } = await supabase
+  //get bpjs user_id
+  const { data: bpjsDoctors, error: bpjsError } = await supabase
+    .from('doctors')
+    .select('user_id')
+    .eq('bpjs', true)
+
+  if (bpjsError) return NextResponse.json({ error: bpjsError.message }, { status: 500 })
+
+  const bpjsDoctorIds = bpjsDoctors.map(doc => doc.user_id)
+  if (bpjsDoctorIds.length === 0) {
+    return NextResponse.json([], { status: 200 })
+  }
+
+  //get bpjs availability
+  const { data: availabilities, error: availError } = await supabase
     .from('doctoravailability')
-    .select('doctor_id, start_time, end_time')
-    .eq('weekday', weekday)
+    .select('doctor_id, start_time, end_time, weekday')
+    .in('doctor_id', bpjsDoctorIds)
 
-  if (error) return NextResponse.json({ error: error.message }, { status: 500 })
+  if (availError) return NextResponse.json({ error: availError.message }, { status: 500 })
 
-  // 2. Generate time slots for each doctor
+  //time slots
   const slotsMap: { [time: string]: boolean } = {}
 
   for (const avail of availabilities) {
@@ -25,15 +37,18 @@ export async function GET(req: NextRequest) {
 
     for (let hour = startHour; hour < endHour; hour++) {
       const slot = `${hour.toString().padStart(2, '0')}:00`
-      slotsMap[slot] = false // false = not booked
+      if (!(slot in slotsMap)) {
+        slotsMap[slot] = false //false is available
+      }
     }
   }
 
-  // 3. Get booked times from doctorbooking
+  //get booked hours
   const { data: bookings, error: bookingError } = await supabase
     .from('doctorbooking')
-    .select('book_time')
+    .select('book_time, doctor_id')
     .eq('book_date', dateParam)
+    .in('doctor_id', bpjsDoctorIds)
 
   if (bookingError) return NextResponse.json({ error: bookingError.message }, { status: 500 })
 
@@ -41,11 +56,10 @@ export async function GET(req: NextRequest) {
     const bookedHour = b.book_time.split(':')[0]
     const slot = `${bookedHour.padStart(2, '0')}:00`
     if (slot in slotsMap) {
-      slotsMap[slot] = true
+      slotsMap[slot] = true //true is booked
     }
   })
 
-  // 4. Convert to [{ time: "08:00", isBooked: false }, ...]
   const timeslots = Object.entries(slotsMap)
     .sort(([a], [b]) => parseInt(a) - parseInt(b))
     .map(([time, isBooked]) => ({ time, isBooked }))
