@@ -11,7 +11,7 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: 'Missing query' }, { status: 400 });
     }
 
-    // Resolve path to Python script
+    //resolve path to py script
     const scriptPath = path.resolve('src/ml/model/biobert_inference.py');
 
     return new Promise((resolve) => {
@@ -22,6 +22,8 @@ export async function POST(req: Request) {
             NextResponse.json({ error: 'Prediction failed' }, { status: 500 })
           );
         }
+
+        console.error('Raw stdout from Python (as string):', JSON.stringify(stdout));
 
         try {
           const predictions = JSON.parse(stdout);

@@ -42,4 +42,5 @@ next-env.d.ts
 
 venv/    
 bert_ICD/
-src/ml/
+bert_obat/
+# src/ml/
