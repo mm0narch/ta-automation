@@ -35,7 +35,7 @@ export default function PatientLoginPage() {
   };
 
   const goToRegister = () => {
-    router.push('/patient/newaccount');
+    router.push('/patientregister');
   };
 
   return (

@@ -31,7 +31,9 @@ def get_medicine_prediction(query):
         results.append({
             "name": medicine_names[i],
             "harga_obat": harga_obat[i],
-            "similarity_percentage": round(similarities[i].item() * 100, 2)
+            "similarity_percentage": round(similarities[i].item() * 100, 2),
+            "sub_kelas_terapi": sub_kelas_terapi[i],
+            'sediaan': sediaan[i]
         })
 
     return results

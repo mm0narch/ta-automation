@@ -22,6 +22,8 @@ export async function POST(req: Request) {
             NextResponse.json({ error: 'Prediction failed' }, { status: 500 })
           );
         }
+        
+        console.error('Raw stdout from Python (as string):', JSON.stringify(stdout));
 
         try {
           const predictions = JSON.parse(stdout);
