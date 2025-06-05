@@ -2,6 +2,19 @@
 
 import Image from 'next/image';
 import { useEffect, useState } from 'react';
+import { supabase } from '../../../../lib/supabase'
+
+interface PatientBooking {
+  book_date: string;
+  book_time: string;
+  patients: {
+    full_name: string;
+    birthdate: string;
+    phone_number: string;
+    address: string;
+    bpjs: boolean;
+  };
+}
 
 interface Icd10Prediction {
   kode_icd: string;
@@ -20,6 +33,9 @@ interface MedicinePrediction {
 export default function DocumentPage() {
   const [activeTab, setActiveTab] = useState<'info' | 'details' | 'final'>('info');
   const [username, setUsername] = useState('');
+
+  const [bookedPatients, setBookedPatients] = useState<PatientBooking[]>([]);
+  const [patientLoading, setPatientLoading] = useState(true)
 
   const [query, setQuery] = useState('');
   const [results, setResults] = useState<Icd10Prediction[]>([]);
@@ -59,6 +75,29 @@ export default function DocumentPage() {
     }
   };
 
+  useEffect(() => {
+    const fetchBookedPatients = async () => {
+      try {
+        const res = await fetch('/api/doctor/info');
+        const data = await res.json();
+
+        if (res.ok && data.patientData) {
+          setBookedPatients(data.patientData);
+          setPatientLoading(false);
+        } else {
+          console.error('Failed to fetch patient data:', data.error);
+          setPatientLoading(false);
+        }
+      } catch (error) {
+        console.error('Error fetching patient data:', error);
+        setPatientLoading(false);
+      }
+    };
+
+    fetchBookedPatients();
+  }, []);
+
+  
   const handleIcd10Search = async () => {
     setLoading(true);
     setError('');
@@ -169,7 +208,32 @@ export default function DocumentPage() {
       <main className="p-4 bg-[#f9f9f9] my-2 mx-4 rounded-sm flex-1">
         <div className="h-full flex flex-col items-center justify-start text-gray-700 text-lg">
           {activeTab === 'info' && (
-            <div className="mt-20">Patient Information Section</div>
+            <div className="mt-20">
+              <h2 className="text-xl font-semibold mb-4">Booked Patients</h2>
+
+              {patientLoading ? (
+                <p>Loading patient data...</p>
+              ) : bookedPatients.length === 0 ? (
+                <p>No patients booked yet.</p>
+              ) : (
+                <ul className="space-y-4">
+                  {bookedPatients.map((booking, idx) => (
+                    <li
+                      key={idx}
+                      className="p-4 border rounded shadow-sm bg-white"
+                    >
+                      <p><strong>Name:</strong> {booking.patients.full_name}</p>
+                      <p><strong>Birthdate:</strong> {booking.patients.birthdate}</p>
+                      <p><strong>Phone:</strong> {booking.patients.phone_number}</p>
+                      <p><strong>Address:</strong> {booking.patients.address}</p>
+                      <p><strong>BPJS:</strong> {booking.patients.bpjs ? 'Yes' : 'No'}</p>
+                      <p><strong>Appointment Date:</strong> {booking.book_date}</p>
+                      <p><strong>Appointment Time:</strong> {booking.book_time}</p>
+                    </li>
+                  ))}
+                </ul>
+              )}
+            </div>
           )}
 
           {activeTab === 'details' && (
