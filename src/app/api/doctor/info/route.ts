@@ -27,7 +27,7 @@ export async function GET() {
 
     const { data: patientData, error: dataError } = await supabase
         .from('doctorbooking')
-        .select(`book_date, book_time, 
+        .select(`id, book_date, book_time, 
             patients:patient_id (full_name, birthdate, phone_number, address, bpjs)`)
         .eq('doctor_id', doctorId)
         .order('book_date', { ascending: true})

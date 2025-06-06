@@ -2,9 +2,9 @@
 
 import Image from 'next/image';
 import { useEffect, useState } from 'react';
-import { supabase } from '../../../../lib/supabase'
 
 interface PatientBooking {
+  id: string
   book_date: string;
   book_time: string;
   patients: {
@@ -34,6 +34,7 @@ export default function DocumentPage() {
   const [activeTab, setActiveTab] = useState<'info' | 'details' | 'final'>('info');
   const [username, setUsername] = useState('');
 
+  const [selectedBookingId, setSelectedBookingId] = useState<string | null>(null);
   const [bookedPatients, setBookedPatients] = useState<PatientBooking[]>([]);
   const [patientLoading, setPatientLoading] = useState(true)
 
@@ -50,6 +51,9 @@ export default function DocumentPage() {
   const [selectedIcds, setSelectedIcds] = useState<Icd10Prediction[]>([]);
   const [selectedMedicines, setSelectedMedicines] = useState<MedicinePrediction[]>([]);
   const [notes, setNotes] = useState('');
+
+  const selectedBooking = bookedPatients.find(b => b.id === selectedBookingId);
+  
 
   useEffect(() => {
     const fetchUser = async () => {
@@ -104,7 +108,7 @@ export default function DocumentPage() {
     setResults([]);
 
     try {
-      const res = await fetch('/api/icd10predict', {
+      const res = await fetch('/api/doctor/icd10predict', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ query }),
@@ -130,7 +134,7 @@ export default function DocumentPage() {
     setMedicineResults([]);
 
     try {
-      const res = await fetch('/api/medicinepredict', {
+      const res = await fetch('/api/doctor/medicinepredict', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ query: medicineQuery }),
@@ -177,17 +181,32 @@ export default function DocumentPage() {
           </div>
 
           <div className="absolute left-[26%] flex space-x-6">
-            {['info', 'details', 'final'].map((tab) => (
-              <button
-                key={tab}
-                className={`text-lg font-semibold hover:underline ${
-                  activeTab === tab ? 'text-[#ee0035]' : 'text-[#f9f9f9]'
-                }`}
-                onClick={() => setActiveTab(tab as typeof activeTab)}
-              >
-                {tab === 'info' ? 'patient info' : tab === 'details' ? 'details' : 'finalization'}
-              </button>
-            ))}
+            <button
+              onClick={() => setActiveTab('info')}
+              className={`text-lg font-semibold hover:underline ${
+                activeTab === 'info' ? 'text-[#ee0035] font-bold' : 'text-[#f9f9f9]'
+              }`}
+            >
+              patient info
+            </button>
+            <button
+              onClick={() => selectedBookingId && setActiveTab('details')}
+              disabled={!selectedBookingId}
+              className={`text-lg font-semibold hover:underline ${
+                activeTab === 'details' ? 'text-[#ee0035] font-bold' : 'text-[#f9f9f9]'
+              } ${!selectedBookingId ? 'opacity-50 cursor-not-allowed' : ''}`}
+            >
+              details
+            </button>
+            <button
+              onClick={() => selectedBookingId && setActiveTab('final')}
+              disabled={!selectedBookingId}
+              className={`text-lg font-semibold hover:underline ${
+                activeTab === 'final' ? 'text-[#ee0035] font-bold' : 'text-[#f9f9f9]'
+              } ${!selectedBookingId ? 'opacity-50 cursor-not-allowed' : ''}`}
+            >
+              finalization
+            </button>
           </div>
 
           <div className="absolute right-7 flex space-x-6">
@@ -203,7 +222,7 @@ export default function DocumentPage() {
             </button>
           </div>
         </div>
-      </header>
+      </header> 
 
       <main className="p-4 bg-[#f9f9f9] my-2 mx-4 rounded-sm flex-1">
         <div className="h-full flex flex-col items-center justify-start text-gray-700 text-lg">
@@ -219,8 +238,14 @@ export default function DocumentPage() {
                 <ul className="space-y-4">
                   {bookedPatients.map((booking, idx) => (
                     <li
-                      key={idx}
-                      className="p-4 border rounded shadow-sm bg-white"
+                      key={booking.id || idx}
+                      onClick={() => {
+                        setSelectedBookingId(booking.id || null);
+                        setActiveTab('details')
+                      }}
+                      className={`p-4 border rounded shadow-sm bg-white cursor-pointer ${
+                        selectedBookingId === booking.id ? 'border-red-500 bg-red-50' : ''
+                      }`}
                     >
                       <p><strong>Name:</strong> {booking.patients.full_name}</p>
                       <p><strong>Birthdate:</strong> {booking.patients.birthdate}</p>
@@ -395,50 +420,62 @@ export default function DocumentPage() {
             </div>
           )}
 
-          {activeTab === 'final' && (
+          {activeTab === 'final' && ( 
             <div className="w-full max-w-xl mt-10 space-y-4">
               <h2 className="text-xl font-semibold">Finalize Diagnosis</h2>
 
-              <div className="p-4 border bg-white rounded space-y-2">
-                <p><strong>Selected ICDs:</strong></p>
-                <ul className="list-disc list-inside">
-                  {selectedIcds.length > 0 ? (
-                    selectedIcds.map((item, idx) => (
-                      <li key={idx}>
-                        {item.kode_icd} - {item.nama_penyakit}
-                      </li>
-                    ))
-                  ) : (
-                    <li>None</li>
-                  )}
-                </ul>
-                
-                <p><strong>Selected Medicines:</strong></p>
-                <ul className="list-disc list-inside">
-                  {selectedMedicines.length > 0 ? (
-                    selectedMedicines.map((med, idx) => (
-                      <li key={idx}>
-                        {med.name} - {med.sub_kelas_terapi || '-'}
-                      </li>
-                    ))
-                  ) : (
-                    <li>None</li>
-                  )}
-                </ul>
+              <div className="p-4 border bg-white rounded space-y-4 text-sm text-gray-800">
+                {selectedBooking && (
+                  <div className="space-y-1">
+                    <p><strong>Name:</strong> {selectedBooking.patients.full_name}</p>
+                    <p><strong>Birthdate:</strong> {selectedBooking.patients.birthdate}</p>
+                    <p><strong>Phone:</strong> {selectedBooking.patients.phone_number}</p>
+                    <p><strong>Address:</strong> {selectedBooking.patients.address}</p>
+                    <p><strong>BPJS:</strong> {selectedBooking.patients.bpjs ? 'Yes' : 'No'}</p>
+                  </div>
+                )}
 
-                <textarea
-                  placeholder="Doctor's Notes..."
-                  value={notes}
-                  onChange={(e) => setNotes(e.target.value)}
-                  className="w-full h-28 p-2 border rounded resize-none"
-                />
+                <div className="space-y-2">
+                  <p><strong>Selected ICDs:</strong></p>
+                  <ul className="list-disc list-inside">
+                    {selectedIcds.length > 0 ? (
+                      selectedIcds.map((item, idx) => (
+                        <li key={idx}>
+                          {item.kode_icd} - {item.nama_penyakit}
+                        </li>
+                      ))
+                    ) : (
+                      <li>None</li>
+                    )}
+                  </ul>
 
-                <button
-                  onClick={handleFinalSubmit}
-                  className="w-full bg-[#10b981] text-white py-2 rounded hover:bg-[#0f766e]"
-                >
-                  Submit Diagnosis
-                </button>
+                  <p><strong>Selected Medicines:</strong></p>
+                  <ul className="list-disc list-inside">
+                    {selectedMedicines.length > 0 ? (
+                      selectedMedicines.map((med, idx) => (
+                        <li key={idx}>
+                          {med.name} - {med.sub_kelas_terapi || '-'}
+                        </li>
+                      ))
+                    ) : (
+                      <li>None</li>
+                    )}
+                  </ul>
+
+                  <textarea
+                    placeholder="Doctor's Notes..."
+                    value={notes}
+                    onChange={(e) => setNotes(e.target.value)}
+                    className="w-full h-28 p-2 border rounded resize-none"
+                  />
+
+                  <button
+                    onClick={handleFinalSubmit}
+                    className="w-full bg-[#10b981] text-white py-2 rounded hover:bg-[#0f766e]"
+                  >
+                    Submit Diagnosis
+                  </button>
+                </div>
               </div>
             </div>
           )}

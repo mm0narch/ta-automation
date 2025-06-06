@@ -23,7 +23,7 @@ export async function POST(req: Request) {
           );
         }
 
-        console.error('Raw stdout from Python (as string):', JSON.stringify(stdout));
+        console.log('Raw stdout from Python (as string):', JSON.stringify(stdout));
 
         try {
           const predictions = JSON.parse(stdout);
