@@ -28,6 +28,7 @@ interface MedicinePrediction {
   sediaan?: string;
   harga_obat?: number;
   similarity_percentage: number;
+  frequency?: string;
 }
 
 export default function DocumentPage() {
@@ -154,21 +155,44 @@ export default function DocumentPage() {
     }
   };
 
-  const handleFinalSubmit = () => {
-    if (!selectedIcds || !selectedMedicines || !notes.trim()) {
-      alert('Please fill all fields.');
+  const handleFinalSubmit = async () => {
+  if (!selectedIcds || !selectedMedicines || !notes.trim()) {
+    alert('Please fill all fields.');
+    return;
+  }
+
+  const payload = {
+    icd10: selectedIcds.map(icd => icd.kode_icd),           
+    booking_id: selectedBookingId, 
+    diagnosisnotes: notes, 
+    medicine: selectedMedicines    
+  };
+
+  console.log('Final Submission:', payload);
+
+  try {
+    const res = await fetch('/api/doctor/finalize', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json'  // Fix: 'Content Type' => 'Content-Type'
+      },
+      body: JSON.stringify(payload)
+    });
+
+    if (!res.ok) {
+      const errorData = await res.json();
+      alert(`Error: ${errorData.error || 'Unknown error'}`);
       return;
     }
 
-    const payload = {
-      icd10: selectedIcds,
-      medicine: selectedMedicines,
-      doctor_notes: notes,
-    };
-
-    console.log('Final Submission:', payload);
-    // TODO: Hook this to backend `/api/diagnosis/submit`
-  };
+    const data = await res.json();
+    alert('Submission successful!');
+    // handle post-submit behavior here (e.g., redirect or clear form)
+  } catch (err) {
+    console.error('Fetch error:', err);
+    alert('Failed to submit. Please try again.');
+  }
+};
 
   return (
     <div className="min-h-screen bg-gray-200 flex flex-col">
@@ -182,7 +206,10 @@ export default function DocumentPage() {
 
           <div className="absolute left-[26%] flex space-x-6">
             <button
-              onClick={() => setActiveTab('info')}
+              onClick={() => {
+                console.log('Tab clicked: info');
+                setActiveTab('info');
+              }}
               className={`text-lg font-semibold hover:underline ${
                 activeTab === 'info' ? 'text-[#ee0035] font-bold' : 'text-[#f9f9f9]'
               }`}
@@ -190,7 +217,14 @@ export default function DocumentPage() {
               patient info
             </button>
             <button
-              onClick={() => selectedBookingId && setActiveTab('details')}
+              onClick={() => {
+                if (selectedBookingId) {
+                  console.log('Tab clicked: details with booking id', selectedBookingId);
+                  setActiveTab('details');
+                } else {
+                  console.log('Details tab disabled - no booking selected');
+                }
+              }}
               disabled={!selectedBookingId}
               className={`text-lg font-semibold hover:underline ${
                 activeTab === 'details' ? 'text-[#ee0035] font-bold' : 'text-[#f9f9f9]'
@@ -199,7 +233,14 @@ export default function DocumentPage() {
               details
             </button>
             <button
-              onClick={() => selectedBookingId && setActiveTab('final')}
+              onClick={() => {
+                if (selectedBookingId) {
+                  console.log('Tab clicked: final with booking id', selectedBookingId);
+                  setActiveTab('final');
+                } else {
+                  console.log('Finalization tab disabled - no booking selected');
+                }
+              }}
               disabled={!selectedBookingId}
               className={`text-lg font-semibold hover:underline ${
                 activeTab === 'final' ? 'text-[#ee0035] font-bold' : 'text-[#f9f9f9]'
@@ -214,7 +255,10 @@ export default function DocumentPage() {
               {username ? `hello, ${username}` : 'loading...'}
             </span>
             <button
-              onClick={handleLogout}
+              onClick={() => {
+                console.log('Logout button clicked');
+                handleLogout();
+              }}
               className="p-1 rounded-lg hover:bg-white transition duration-200 group"
             >
               <Image src="/logout_final.png" alt="Logout" width={24} height={24} className="group-hover:hidden" />
@@ -222,7 +266,7 @@ export default function DocumentPage() {
             </button>
           </div>
         </div>
-      </header> 
+      </header>
 
       <main className="p-4 bg-[#f9f9f9] my-2 mx-4 rounded-sm flex-1">
         <div className="h-full flex flex-col items-center justify-start text-gray-700 text-lg">
@@ -240,8 +284,9 @@ export default function DocumentPage() {
                     <li
                       key={booking.id || idx}
                       onClick={() => {
+                        console.log('Patient booking clicked:', booking);
                         setSelectedBookingId(booking.id || null);
-                        setActiveTab('details')
+                        setActiveTab('details');
                       }}
                       className={`p-4 border rounded shadow-sm bg-white cursor-pointer ${
                         selectedBookingId === booking.id ? 'border-red-500 bg-red-50' : ''
@@ -268,12 +313,18 @@ export default function DocumentPage() {
                 <input
                   type="text"
                   value={query}
-                  onChange={(e) => setQuery(e.target.value)}
+                  onChange={(e) => {
+                    console.log('ICD Search query changed:', e.target.value);
+                    setQuery(e.target.value);
+                  }}
                   placeholder="Enter symptoms or diagnosis..."
                   className="w-full p-2 border border-gray-300 rounded-md"
                 />
                 <button
-                  onClick={handleIcd10Search}
+                  onClick={() => {
+                    console.log('ICD Search button clicked with query:', query);
+                    handleIcd10Search();
+                  }}
                   className="mt-2 bg-[#ee0035] text-white px-4 py-2 rounded hover:bg-[#c8002b] transition w-full"
                   disabled={loading}
                 >
@@ -292,9 +343,10 @@ export default function DocumentPage() {
                             <strong>{item.kode_icd}</strong> - {item.nama_penyakit}
                           </span>
                           <button
-                            onClick={() =>
-                              setSelectedIcds(selectedIcds.filter(icd => icd.kode_icd !== item.kode_icd))
-                            }
+                            onClick={() => {
+                              console.log('Removing selected ICD:', item.kode_icd);
+                              setSelectedIcds(selectedIcds.filter(icd => icd.kode_icd !== item.kode_icd));
+                            }}
                             className="text-gray-950 hover:text-red-700 text-sm ml-2"
                           >
                             &times;
@@ -318,8 +370,10 @@ export default function DocumentPage() {
                           }`}
                           onClick={() => {
                             if (isSelected) {
+                              console.log('Deselecting ICD suggestion:', item.kode_icd);
                               setSelectedIcds(selectedIcds.filter(icd => icd.kode_icd !== item.kode_icd));
                             } else {
+                              console.log('Selecting ICD suggestion:', item.kode_icd);
                               setSelectedIcds([...selectedIcds, item]);
                               setResults(results.filter(result => result.kode_icd !== item.kode_icd));
                             }
@@ -332,8 +386,6 @@ export default function DocumentPage() {
                     })}
                   </div>
                 )}
-
-                
               </div>
 
               {/* Medicine Search */}
@@ -341,12 +393,18 @@ export default function DocumentPage() {
                 <input
                   type="text"
                   value={medicineQuery}
-                  onChange={(e) => setMedicineQuery(e.target.value)}
+                  onChange={(e) => {
+                    console.log('Medicine search query changed:', e.target.value);
+                    setMedicineQuery(e.target.value);
+                  }}
                   placeholder="Enter medicine name or description..."
                   className="w-full p-2 border border-gray-300 rounded-md"
                 />
                 <button
-                  onClick={handleMedicineSearch}
+                  onClick={() => {
+                    console.log('Medicine Search button clicked with query:', medicineQuery);
+                    handleMedicineSearch();
+                  }}
                   className="mt-2 bg-[#0070f3] text-white px-4 py-2 rounded hover:bg-[#005bb5] transition w-full"
                   disabled={medicineLoading}
                 >
@@ -360,14 +418,30 @@ export default function DocumentPage() {
                     <h4 className="font-semibold mb-2">Selected Medicines:</h4>
                     <ul className="space-y-1">
                       {selectedMedicines.map((med, idx) => (
-                        <li key={idx} className="flex items-center justify-between bg-gray-100 p-2 rounded">
-                          <span>
-                            <strong>{med.name}</strong> - {med.sub_kelas_terapi} - {med.harga_obat}
+                        <li
+                          key={idx}
+                          className="flex items-center justify-between bg-gray-100 p-2 rounded"
+                        >
+                          <span className="mr-4">
+                            <strong>{med.name}</strong> - {med.sub_kelas_terapi || '-'} - {med.harga_obat || '-'}
                           </span>
+
+                          <input
+                            type="text"
+                            placeholder="Frequency (e.g. 2x/day)"
+                            value={med.frequency || ''}
+                            onChange={(e) => {
+                              const newMeds = [...selectedMedicines];
+                              newMeds[idx].frequency = e.target.value;
+                              setSelectedMedicines(newMeds);
+                            }}
+                            className="ml-auto border border-gray-300 rounded px-2 py-1 text-sm w-40"
+                          />
+
                           <button
-                            onClick={() =>
-                              setSelectedMedicines(selectedMedicines.filter(med => med.name !== med.name))                              
-                            }
+                            onClick={() => {
+                              setSelectedMedicines(selectedMedicines.filter((_, i) => i !== idx));
+                            }}
                             className="text-gray-950 hover:text-red-700 text-sm ml-2"
                           >
                             &times;
@@ -382,7 +456,7 @@ export default function DocumentPage() {
                   <div className="mt-4 space-y-2">
                     <h3 className="font-semibold">Medicine Suggestions:</h3>
                     {medicineResults.map((item, idx) => {
-                      const isSelected = selectedMedicines.some(med => 
+                      const isSelected = selectedMedicines.some(med =>
                         med.name === item.name &&
                         med.similarity_percentage === item.similarity_percentage &&
                         med.sub_kelas_terapi === item.sub_kelas_terapi &&
@@ -393,29 +467,28 @@ export default function DocumentPage() {
                         <div
                           key={idx}
                           className={`p-3 border rounded shadow cursor-pointer ${
-                            isSelected ? 'bg-green-100' : 'bg-white'
+                            isSelected ? 'bg-blue-100' : 'bg-white'
                           }`}
                           onClick={() => {
                             if (isSelected) {
+                              console.log('Deselecting medicine suggestion:', item.name);
                               setSelectedMedicines(selectedMedicines.filter(med => med.name !== item.name));
                             } else {
+                              console.log('Selecting medicine suggestion:', item.name);
                               setSelectedMedicines([...selectedMedicines, item]);
                               setMedicineResults(medicineResults.filter(result => result.name !== item.name));
                             }
                           }}
                         >
                           <p><strong>{item.name}</strong></p>
-                          <p>Similarity: {item.similarity_percentage}%</p>
-                          <p>Subkelas Terapi: {item.sub_kelas_terapi || '-'}</p>
-                          <p>Sediaan: {item.sediaan || '-'}</p>
-                          <p>Price: {item.harga_obat ?? '-'}</p>
+                          <p>{item.sub_kelas_terapi} - {item.sediaan}</p>
+                          <p>Price: {item.harga_obat}</p>
+                          <p>Confidence: {item.similarity_percentage}%</p>
                         </div>
                       );
                     })}
                   </div>
                 )}
-
-                
               </div>
             </div>
           )}
@@ -450,11 +523,11 @@ export default function DocumentPage() {
                   </ul>
 
                   <p><strong>Selected Medicines:</strong></p>
-                  <ul className="list-disc list-inside">
+                  <ul className="list-disc list-">
                     {selectedMedicines.length > 0 ? (
                       selectedMedicines.map((med, idx) => (
                         <li key={idx}>
-                          {med.name} - {med.sub_kelas_terapi || '-'}
+                          {med.name} - {med.sub_kelas_terapi || '-'} - {med.sediaan || '-'} - <em>{med.frequency || 'No frequency specified'}</em>
                         </li>
                       ))
                     ) : (
