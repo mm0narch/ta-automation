@@ -2,6 +2,19 @@ import { NextResponse } from 'next/server'
 import { supabase } from '../../../../../lib/supabase'
 import { cookies } from 'next/headers'
 
+interface PatientBooking {
+  id: string
+  book_date: string;
+  book_time: string;
+  patients: {
+    full_name: string;
+    birthdate: string;
+    phone_number: string;
+    address: string;
+    bpjs: boolean;
+  };
+}
+
 interface MedicineItem {
   name: string;
   sub_kelas_terapi?: string;
@@ -39,6 +52,20 @@ export async function POST(req: Request) {
     const doctorId = sessionData.user_id
     console.log('[DEBUG] Logged in doctor ID:', doctorId)
 
+    const { data: bookingInfo, error: bookingError } = await supabase
+      .from('doctorbooking')
+      .select('patient_id')
+      .eq('id', booking_id)
+      .single()
+
+    if (bookingError || !bookingInfo) {
+      console.error('[ERROR] Failed to fetch patient_id from booking:', bookingError)
+      return NextResponse.json({ error: 'Failed to retrieve patient info' }, { status: 500 })
+    }
+
+    const patientId = bookingInfo.patient_id
+    console.log('[DEBUG] Fetched patient_id:', patientId)
+
     if (!booking_id || !diagnosisnotes || !Array.isArray(icd10)) {
       console.error('[ERROR] Missing required fields:', { booking_id, diagnosisnotes, icd10 })
       return NextResponse.json({ error: 'Missing data' }, { status: 400 })
@@ -49,6 +76,7 @@ export async function POST(req: Request) {
       .insert({
         booking_id,
         doctor_id: doctorId,
+        patient_id: patientId,
         icd10,
         diagnosisnotes
       })

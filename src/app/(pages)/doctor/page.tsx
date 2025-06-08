@@ -53,7 +53,7 @@ export default function DocumentPage() {
   const [selectedMedicines, setSelectedMedicines] = useState<MedicinePrediction[]>([]);
   const [notes, setNotes] = useState('');
 
-  const selectedBooking = bookedPatients.find(b => b.id === selectedBookingId);
+  const selectedBooking = bookedPatients.find(b => b.patients.full_name === selectedBookingId);
   
 
   useEffect(() => {
@@ -249,7 +249,7 @@ export default function DocumentPage() {
               finalization
             </button>
           </div>
-
+              
           <div className="absolute right-7 flex space-x-6">
             <span className="text-[#f9f9f9] text-lg font-semibold">
               {username ? `hello, ${username}` : 'loading...'}
@@ -523,7 +523,7 @@ export default function DocumentPage() {
                   </ul>
 
                   <p><strong>Selected Medicines:</strong></p>
-                  <ul className="list-disc list-">
+                  <ul className="list-disc list-inside">
                     {selectedMedicines.length > 0 ? (
                       selectedMedicines.map((med, idx) => (
                         <li key={idx}>
