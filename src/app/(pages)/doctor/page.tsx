@@ -53,7 +53,7 @@ export default function DocumentPage() {
   const [selectedMedicines, setSelectedMedicines] = useState<MedicinePrediction[]>([]);
   const [notes, setNotes] = useState('');
 
-  const selectedBooking = bookedPatients.find(b => b.patients.full_name === selectedBookingId);
+  const selectedBooking = bookedPatients.find(b => b.id === selectedBookingId);
   
 
   useEffect(() => {

@@ -90,7 +90,7 @@ export async function POST(req: Request) {
 
     const { data: prescriptionData, error: prescriptionError } = await supabase
       .from('prescription')
-      .insert({ booking_id })
+      .insert({ booking_id, diagnosisnotes })
       .select('id')
       .single()
 
