@@ -56,10 +56,10 @@ export async function POST(req: Request) {
 
   response.cookies.set('patient_session', sessionToken, {
     httpOnly: true,
-    secure: false, // set to true in production
+    secure: false, //true in production
     sameSite: 'lax',
     path: '/',
-    maxAge: 60 * 60 * 24, // 1 day
+    maxAge: 60 * 60 * 24, //1 day
   });
 
   return response;

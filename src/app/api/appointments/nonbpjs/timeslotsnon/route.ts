@@ -6,8 +6,6 @@ export async function GET(req: NextRequest) {
   const doctorId = req.nextUrl.searchParams.get('doctor_id')
   const bookDate = req.nextUrl.searchParams.get('date')
 
-  console.log('Query params:', { doctorId, bookDate })
-
   if (!doctorId || !bookDate) {
     return NextResponse.json({ error: 'Missing doctor_id or date' }, { status: 400 })
   }

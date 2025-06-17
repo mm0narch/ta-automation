@@ -1,40 +1,16 @@
 'use client';
 
 import Image from 'next/image';
-import { useState, useEffect } from 'react';
-import { supabase } from '../../../../lib/supabase';
+import { useRouter } from 'next/navigation';
+import { useEffect, useState } from 'react';
 
-type Patient = {
-  id: string;
-  full_name: string;
-  birthdate: string;
-  phone_number: string;
-  sex: string;
-  queue_number: number;
-  created_at: string;
-};
-
-export default function DocumentPage() {
-  const [activeTab, setActiveTab] = useState<'info' | 'details' | 'final'>('info');
-  const [patients, setPatients] = useState<Patient[]>([]);
-
-  useEffect(() => {
-    const fetchPatients = async () => {
-      const { data, error } = await supabase
-        .from('patients')
-        .select('*')
-        .order('created_at', { ascending: false });
-      if(error) {
-        console.error('Error fetching patient data:', error.message)
-        return;
-      }
-      setPatients(data as Patient[]);
-    }
-    fetchPatients();
-  }, []);
+export default function AdminPage() {
+  const [activeTab, setActiveTab] = useState<'user' | 'patient' | 'final'>('user');
+  const router = useRouter();
 
   return (
     <div className="min-h-screen bg-gray-200 flex flex-col">
+      {/* Header */}
       <header className="relative w-full h-26">
         <Image
           src="/header-doc.jpg"
@@ -42,81 +18,109 @@ export default function DocumentPage() {
           layout="fill"
           objectFit="cover"
         />
-        <div className="absolute inset-0 flex items-center px-6">
-
+        <div className="absolute inset-0 flex items-center px-6 justify-between w-full">
           <div className="flex flex-col space-y-1 items-end mt-1">
             <Image src="/vercel.svg" alt="Logo" width={76} height={38} />
             <span className="text-[#f9f9f9] text-sm font-semibold">admin</span>
           </div>
-
-          <div className="absolute left-[26%] flex space-x-6">
+          <div className="flex space-x-6">
             <button
               className={`text-lg font-semibold hover:underline ${
-                activeTab === 'info' ? 'text-[#ee0035]' : 'text-[#f9f9f9]'
+                activeTab === 'user' ? 'text-[#ee0035]' : 'text-[#f9f9f9]'
               }`}
-              onClick={() => setActiveTab('info')}
+              onClick={() => setActiveTab('user')}
             >
-              patient info
+              User Info
             </button>
-
             <button
               className={`text-lg font-semibold hover:underline ${
-                activeTab === 'details' ? 'text-[#ee0035]' : 'text-[#f9f9f9]'
+                activeTab === 'patient' ? 'text-[#ee0035]' : 'text-[#f9f9f9]'
               }`}
-              onClick={() => setActiveTab('details')}
+              onClick={() => setActiveTab('patient')}
             >
-              details
+              Patient Info
             </button>
-
             <button
               className={`text-lg font-semibold hover:underline ${
                 activeTab === 'final' ? 'text-[#ee0035]' : 'text-[#f9f9f9]'
               }`}
               onClick={() => setActiveTab('final')}
             >
-              finalization
+              Finalization
             </button>
           </div>
         </div>
       </header>
 
+      {/* Main Section */}
       <main className="p-4 bg-[#f9f9f9] my-1 mx-1 rounded-sm flex-1">
-        {activeTab === 'info' && (
-          <div>
-            <h2 className="text-xl font-bold mb-4 text-zinc-950">Registered Patients</h2>
-            <table className="w-full text-left border-collapse">
-              <thead>
-                <tr 
-                  className="bg-zinc-950"
-                  style={{ backgroundImage: "url('/header-doc.jpg')" }}>
-                  <th className="p-2 border text-gray-500">Queue</th>
-                  <th className="p-2 border text-gray-500">Full Name</th>
-                  <th className="p-2 border text-gray-500">Birthdate</th>
-                  <th className="p-2 border text-gray-500">Sex</th>
-                  <th className="p-2 border text-gray-500">Phone</th>
-                </tr>
-              </thead>
-              <tbody>
-                {patients.length === 0 ? (
-                  <tr><td colSpan={5} className="text-center text-neutral-900 py-4">No patients registered</td></tr>
-                ) : (
-                  patients.map((p) => (
-                    <tr key={p.id} className="hover:bg-gray-50 text-gray-400">
-                      <td className="p-2 border">{p.queue_number}</td>
-                      <td className="p-2 border">{p.full_name}</td>
-                      <td className="p-2 border">{p.birthdate}</td>
-                      <td className="p-2 border">{p.sex}</td>
-                      <td className="p-2 border">{p.phone_number}</td>
-                    </tr>
-                  ))
-                )}
-              </tbody>
-            </table>
+        {activeTab === 'user' && (
+          <div className="space-y-4">
+            <h2 className="text-xl font-bold text-zinc-950">User Menu</h2>
+            <div className="flex space-x-4">
+              <button
+                onClick={() => router.push('/admin/doctor')}
+                className="bg-blue-600 hover:bg-blue-700 text-white font-semibold py-2 px-4 rounded"
+              >
+                Doctor
+              </button>
+              <button
+                onClick={() => router.push('/admin/pharma')}
+                className="bg-green-600 hover:bg-green-700 text-white font-semibold py-2 px-4 rounded"
+              >
+                Pharmacist
+              </button>
+            </div>
           </div>
         )}
-        {activeTab === 'details' && <div className="text-gray-500 text-xl">Details Section</div>}
-        {activeTab === 'final' && <div className="text-gray-500 text-xl">Finalization Section</div>}
+
+        {activeTab === 'patient' && (
+          <div>
+            <h2 className="text-xl font-bold text-zinc-950 mb-4">Registered Patients</h2>
+            <PatientList />
+          </div>
+        )}
+
+        {activeTab === 'final' && (
+          <div className="text-gray-500 text-xl">Finalization Section</div>
+        )}
       </main>
     </div>
+  );
+}
+
+function PatientList() {
+  const [patients, setPatients] = useState<any[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const fetchPatients = async () => {
+      try {
+        const res = await fetch('/api/admin/patient/');
+        const data = await res.json();
+        setPatients(data);
+      } catch (err) {
+        console.error('Failed to fetch patients:', err);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchPatients();
+  }, []);
+
+  if (loading) return <p className="text-gray-600">Loading patients...</p>;
+
+  return (
+    <ul className="space-y-4">
+      {patients.map((p, index) => (
+        <li key={index} className="bg-white shadow p-4 rounded border">
+          <p className="font-semibold text-gray-900">{p.full_name}</p>
+          <p className="text-sm text-gray-700">Phone: {p.phone_number}</p>
+          <p className="text-sm text-gray-700">Birthdate: {p.birthdate}</p>
+          <p className="text-sm text-gray-700">Address: {p.address}</p>
+        </li>
+      ))}
+    </ul>
   );
 }
